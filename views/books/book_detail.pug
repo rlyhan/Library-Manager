@@ -1,0 +1,24 @@
+extends ../layout.pug
+
+block content
+  h1= title
+  form
+    p
+      label(for='title') Title
+      input#title(name='title' type='text')= book.title
+    p
+      label(for='author') Author
+      input#author(name='author' type='text')= book.author
+    p
+      label(for='genre') Genre
+      input#genre(name='genre' type='text')= book.genre
+    p
+      label(for='year') Year
+      input#year(name='year' type='text')= book.year
+    p
+      input(type='submit') Update Book
+  form(action="/books/" + id + "/delete", method="post", onsubmit="return confirm('Do you really want to delete this book?');")
+    p
+      a.button(href="/books/all_books") Cancel
+    p
+      input(type='submit') Delete Book

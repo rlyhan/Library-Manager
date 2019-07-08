@@ -26,17 +26,19 @@ app.use(function(req, res, next) {
   next(err);
 });
 
-// render 404 error
+// render error
 app.use(function(err, req, res, next) {
   res.status(err.status);
-  res.render('books/page_not_found', {});
+  res.render('books/page_not_found', {
+    message: err.message,
+    error: err
+  });
 });
 
 sequelize.sync().then(function () {
   app.listen(3000, () => {
     console.log('The application is listening on port 3000!');
   });
-  // make this open tab automatically
 });
 
 module.exports = app;

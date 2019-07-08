@@ -1,31 +1,31 @@
-var express = require('express');
-var router = express.Router();
+const express = require('express');
+const router = express.Router();
+const sequelize = require('sequelize');
+
 var Book = require("../models").Book;
 
 /* GET show full list of books */
-router.get('/books', function(req, res, next) {
+router.get('/', function(req, res, next) {
   Book.findAll({order: [['title', 'ASC']]}).then(function(books){
-    res.render("books/all_books", {books: books, title: "Books"});
+    res.render("books/all_books", {books: books});
   }).catch(function(error){
       console.log("500 error");
       res.send(500, error);
   });
 });
 
-/* Show create new book form */
-router.get('/books/new', function(req, res, next) {
-  res.render("books/new_book", {book: Book.build(), title: "New Book"});
+/* GET show create new book form */
+router.get('/new', function(req, res, next) {
+  res.render("books/new_book", {book: Book.build()});
 });
 
-/* POST post new book to database */
-router.post('/books/new', function(req, res, next) {
-  Books.create(req.body).then(function(article) {
+/* POST add new book to database */
+router.post('/new', function(req, res, next) {
+  Book.create(req.body).then(function(book) {
     res.redirect("/books/" + book.id);
   }).catch(function(error){
       if(error.name === "SequelizeValidationError") {
-        var book = Book.build(req.body);
-        // book.id = req.params.id;
-        res.render("books/form_error", {book: book, errors: error.errors, title: "New Book"})
+        res.render("books/new_book", {book: Book.build(req.body), errors: error.errors})
       } else {
         throw error;
       }
@@ -35,42 +35,26 @@ router.post('/books/new', function(req, res, next) {
 });
 
 /* GET show book detail form */
-router.get('/books/:id', function(req, res, next) {
+router.get('/:id', function(req, res, next) {
   Book.findByPk(req.params.id).then((book) => {
-    res.render("books/book_detail", {book: book, title: "Update Book"});
+    res.render("books/book_detail", {book: book});
   }).catch(function(error){
-    res.send(500, error);
-    // res.render("../error", { error: error });
+    res.render("error", {});
   });
 });
 
-/* Edit book info */
-router.post('/books/:id', function(req, res, next) {
+/* POST edit book info */
+router.post('/:id', function(req, res, next) {
   Book.findByPk(req.params.id).then((book) => {
-    if (book) {
-      res.render("books/book_detail", {book: book, title: book.title, author: book.author, genre: book.genre, year: book.year});
-    } else {
-      res.send(404);
-    }
-  }).catch(function(error){
-      res.send(500, error);
-  });
-});
-
-/* PUT update book info */
-router.put('/books/:id', function(req, res, next) {
-  Book.findByPk(req.params.id).then((book) => {
-    if (book) {
-      return book.update(req.body);
-    } else {
-      res.send(404);
-    }
+    return book.update(req.body);
   }).then((book) => {
     res.redirect('/books/' + book.id);
   }).catch(function(error){
     if(error.name === "SequelizeValidationError") {
+      console.log(error.errors);
       var book = Book.build(req.body);
-      res.render("books/form_error", {book: book, errors: error.errors, title: "New Book"})
+      book.id = req.params.id;
+      res.render("books/book_detail", {book: book, errors: error.errors});
     } else {
       throw error;
     }
@@ -79,21 +63,8 @@ router.put('/books/:id', function(req, res, next) {
   });
 });
 
-/* Delete book route */
-router.get('/books/:id/delete', function(req, res, next) {
-  Book.findByPk(req.params.id).then((book) => {
-    if (book) {
-      res.render("/books/" + book.id + "/delete", {book: book});
-    } else {
-      res.send(404);
-    }
-  }).catch(function(error){
-      res.send(500, error);
-  });
-});
-
 /* POST delete book */
-router.post('/books/:id', function(req, res, next){
+router.post('/:id/delete', function(req, res, next){
   Book.findByPk(req.params.id).then((book) => {
     if(book) {
       return book.destroy();
@@ -104,7 +75,7 @@ router.post('/books/:id', function(req, res, next){
     res.redirect('/books');
   }).catch(function(error){
       res.send(500, error);
-   });
+  });
 });
 
 

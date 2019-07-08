@@ -1,24 +1,29 @@
 extends ../layout.pug
 
 block content
-  h1= title
-  form
+  h1 Update Book
+  form(action="/books/" + book.id, method="post")
+    if errors
+      h2.error Oooops!
+      ul.error
+        for error in errors
+          li= error.message
     p
       label(for='title') Title
-      input#title(name='title' type='text')= book.title
+      input#title(name='title' type='text' value=book.title)
     p
       label(for='author') Author
-      input#author(name='author' type='text')= book.author
+      input#author(name='author' type='text' value=book.author)
     p
       label(for='genre') Genre
-      input#genre(name='genre' type='text')= book.genre
+      input#genre(name='genre' type='text' value=book.genre)
     p
       label(for='year') Year
-      input#year(name='year' type='text')= book.year
+      input#year(name='year' type='text' value=book.year)
     p
-      input(type='submit') Update Book
-  form(action="/books/" + id + "/delete", method="post", onsubmit="return confirm('Do you really want to delete this book?');")
+      input(type='submit' value='Update Book')
+  form(action="/books/" + book.id + "/delete", method="post", onsubmit="return confirm('Do you really want to delete this book?');")
     p
-      a.button(href="/books/all_books") Cancel
+      a.button(href="/books") Cancel
     p
-      input(type='submit') Delete Book
+      input(type='submit' value='Delete Book')

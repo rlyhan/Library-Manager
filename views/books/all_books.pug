@@ -2,6 +2,9 @@ extends ../layout.pug
 
 block content
   h1 Books
+  form(action="/books/all/1", method="post")
+    input(type='text' name='query' style="margin-left: 0px")
+    input(type='submit' value='Search' style="margin-left: 15px")
   p
     a.button(href="/books/new") Create New Book
 
@@ -19,3 +22,7 @@ block content
         td= book.author
         td= book.genre
         td= book.year
+  br
+  - var pageno = 1;
+  while pageno <= pages
+    a.button(href="/books/all/" + pageno, style="margin-right: 5px")= pageno++

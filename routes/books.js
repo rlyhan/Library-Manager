@@ -1,16 +1,61 @@
 const express = require('express');
 const router = express.Router();
 const sequelize = require('sequelize');
+const Op = sequelize.Op;
 
 var Book = require("../models").Book;
 
+let currentPage;
+let limit = 10;
+let offset;
+
 /* GET show full list of books */
-router.get('/', function(req, res, next) {
-  Book.findAll({order: [['title', 'ASC']]}).then(function(books){
-    res.render("books/all_books", {books: books});
+router.get('/all/:page', function(req, res, next) {
+  currentPage = req.params.page;
+  offset = (currentPage * 10) - 10;
+  Book.findAndCountAll({order: [['title', 'ASC']], limit: limit, offset: offset}).then(function(books){
+    var noPages = Math.ceil(books.count / 10);
+    res.render("books/all_books", {books: books.rows, pages: noPages});
   }).catch(function(error){
-      console.log("500 error");
-      res.send(500, error);
+    console.log("500 error");
+    res.sendStatus(500).send(error);
+  });
+});
+
+/* POST search for books based on search query */
+router.post('/all/:page', function(req, res, next) {
+  var query = req.body.query;
+  currentPage = req.params.page;
+  offset = (currentPage * 10) - 10;
+  Book.findAndCountAll({order: [['title', 'ASC']], limit: limit, offset: offset, where: {
+    [Op.or]: [
+      {
+        title: {
+          [Op.like]: '%' + query + '%'
+        }
+      },
+      {
+        author: {
+          [Op.like]: '%' + query + '%'
+        }
+      },
+      {
+        genre: {
+          [Op.like]: '%' + query + '%'
+        }
+      },
+      {
+        year: {
+          [Op.like]: '%' + query + '%'
+        }
+      }
+    ]
+  }}).then(function(books){
+    var noPages = Math.ceil(books.count / 10);
+    res.render("books/all_books", {books: books.rows, pages: noPages});
+  }).catch(function(error){
+    console.log("500 error");
+    res.send(500).send(error);
   });
 });
 
@@ -30,7 +75,7 @@ router.post('/new', function(req, res, next) {
         throw error;
       }
   }).catch(function(error){
-      res.send(500, error);
+    res.send(500).send(error);
   });
 });
 
@@ -39,7 +84,7 @@ router.get('/:id', function(req, res, next) {
   Book.findByPk(req.params.id).then((book) => {
     res.render("books/book_detail", {book: book});
   }).catch(function(error){
-    res.render("error", {});
+    res.send(500).send(error);
   });
 });
 
@@ -59,7 +104,7 @@ router.post('/:id', function(req, res, next) {
       throw error;
     }
   }).catch(function(error){
-      res.send(500, error);
+      res.send(500).send(error);
   });
 });
 
@@ -72,9 +117,9 @@ router.post('/:id/delete', function(req, res, next){
       res.send(404);
     }
   }).then(function(){
-    res.redirect('/books');
+    res.redirect('/books/all/1');
   }).catch(function(error){
-      res.send(500, error);
+      res.send(500).send(error);
   });
 });
 

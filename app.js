@@ -20,19 +20,19 @@ app.use('/books', books);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
-  console.log("404 error");
   var err = new Error('Not Found');
   err.status = 404;
   next(err);
 });
 
-// render error
 app.use(function(err, req, res, next) {
-  res.status(err.status);
-  res.render('books/page_not_found', {
-    message: err.message,
-    error: err
-  });
+  console.log(err.status);
+  if (err.status === 404) {
+    res.render('books/page_not_found', {});
+  }
+  if (err.status === 500) {
+    res.render('error', {});
+  }
 });
 
 sequelize.sync().then(function () {

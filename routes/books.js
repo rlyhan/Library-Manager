@@ -14,10 +14,13 @@ router.get('/all/:page', function(req, res, next) {
   currentPage = req.params.page;
   offset = (currentPage * 10) - 10;
   Book.findAndCountAll({order: [['title', 'ASC']], limit: limit, offset: offset}).then(function(books){
-    var noPages = Math.ceil(books.count / 10);
-    res.render("books/all_books", {books: books.rows, pages: noPages});
+    if (books.rows.length > 0) {
+      var noPages = Math.ceil(books.count / 10);
+      res.render("books/all_books", {books: books.rows, pages: noPages});
+    } else {
+      res.render("error", {});
+    }
   }).catch(function(error){
-    console.log("500 error");
     res.sendStatus(500).send(error);
   });
 });
@@ -51,10 +54,13 @@ router.post('/all/:page', function(req, res, next) {
       }
     ]
   }}).then(function(books){
-    var noPages = Math.ceil(books.count / 10);
-    res.render("books/all_books", {books: books.rows, pages: noPages});
+    if (books.rows.length > 0) {
+      var noPages = Math.ceil(books.count / 10);
+      res.render("books/all_books", {books: books.rows, pages: noPages});
+    } else {
+      res.render("error", {});
+    }
   }).catch(function(error){
-    console.log("500 error");
     res.send(500).send(error);
   });
 });
@@ -82,7 +88,11 @@ router.post('/new', function(req, res, next) {
 /* GET show book detail form */
 router.get('/:id', function(req, res, next) {
   Book.findByPk(req.params.id).then((book) => {
-    res.render("books/book_detail", {book: book});
+    if (book) {
+      res.render("books/book_detail", {book: book});
+    } else {
+      res.render("error", {});
+    }
   }).catch(function(error){
     res.send(500).send(error);
   });
@@ -96,7 +106,6 @@ router.post('/:id', function(req, res, next) {
     res.redirect('/books/' + book.id);
   }).catch(function(error){
     if(error.name === "SequelizeValidationError") {
-      console.log(error.errors);
       var book = Book.build(req.body);
       book.id = req.params.id;
       res.render("books/book_detail", {book: book, errors: error.errors});
@@ -119,7 +128,7 @@ router.post('/:id/delete', function(req, res, next){
   }).then(function(){
     res.redirect('/books/all/1');
   }).catch(function(error){
-      res.send(500).send(error);
+    res.send(500).send(error);
   });
 });
 
